@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+  todolist-server:
+    build: ./provisioning
+    image: todolist-backend
+    depends_on:
+      - mysql
+      - mysql-test
+    volumes:
+      - ./:/application:cached
+
+  mysql:
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=symfony-todolist
+    volumes:
+      - ./tmp/db:/var/lib/mysql:cached
+
+  mysql-test:
+    image: mysql:5.7
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=testing
+    volumes:
+      - ./tmp/test:/var/lib/mysql:cached
+
+  nginx:
+    image: nginx
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./provisioning/nginx.conf:/etc/nginx/conf.d/default.conf:cached
+      - ./public:/application/public:cached
+    depends_on:
+      - todolist-server
